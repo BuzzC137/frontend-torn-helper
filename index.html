@@ -3,15 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Torn Panel</title>
+  <title>Torn Panel – Login</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="app">
-    <h1>Chain Bot Dashboard</h1>
-    <div id="status">Loading...</div>
-    <div id="chain-stats"></div>
-  </div>
-  <script src="script.js"></script>
+  <form id="login">
+    <h1>Log in to Torn Panel</h1>
+    <input name="user" placeholder="Torn Username" required>
+    <input name="pass" type="password" placeholder="Password" required>
+    <button type="submit">Log In</button>
+  </form>
+
+  <script>
+    const creds = { user: "YourTornName", pass: "YourSecret" };
+    document.getElementById("login").onsubmit = e => {
+      e.preventDefault();
+      const u = e.target.user.value,
+            p = e.target.pass.value;
+      if (u === creds.user && p === creds.pass) {
+        sessionStorage.loggedIn = "yes";
+        location.href = "ui.html";
+      } else {
+        alert("Invalid credentials");
+      }
+    };
+  </script>
 </body>
 </html>
+
