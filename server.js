@@ -1,45 +1,60 @@
+// server.js
 const express = require('express');
-const app = express();
 const path = require('path');
 const fs = require('fs');
 
-// ——— helpers for assignments.json ———
+const app = express();
+const PORT = 3000;
 const ASSIGN_FILE = path.join(__dirname, 'assignments.json');
+
+// ——— helpers for assignments.json ———
 function loadAssignments() {
-  if (!fs.existsSync(ASSIGN_FILE)) fs.writeFileSync(ASSIGN_FILE, '{}');
+  if (!fs.existsSync(ASSIGN_FILE)) {
+    fs.writeFileSync(ASSIGN_FILE, '{}');
+  }
   return JSON.parse(fs.readFileSync(ASSIGN_FILE));
 }
+
 function saveAssignments(data) {
   fs.writeFileSync(ASSIGN_FILE, JSON.stringify(data, null, 2));
 }
 // ————————————————————————————————
 
-// serve frontend
+// serve static frontend from /public
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());            // parse JSON bodies
+// enable JSON bodies (if you ever POST JSON)
+app.use(express.json());
 
-// basic health-check
-app.get('/api/status', (req, res) =>
-  res.json({ message: 'Chain bot is running.' })
-);
+// — health check
+app.get('/api/status', (req, res) => {
+  res.json({ message: 'Chain bot is running.' });
+});
 
-// mini-Yata stats endpoint
+// — queue stats
 app.get('/api/stats', (req, res) => {
   const assignments = loadAssignments();
   res.json({ queueLength: Object.keys(assignments).length });
 });
 
-// mini-Yata “get next” endpoint
-app.post('/api/next', (req, res) => {
+// — assign “next” chain (shared logic)
+function assignNextChain(req, res) {
   const assignments = loadAssignments();
+  // find lowest positive integer not yet taken
   let next = 1;
-  while (Object.values(assignments).includes(next)) next++;
+  while (Object.values(assignments).includes(next)) {
+    next++;
+  }
+  // store it under the key "public"
   assignments['public'] = next;
   saveAssignments(assignments);
   res.json({ assignedNumber: next });
-});
+}
 
-app.listen(3000, () => {
-  console.log('Bot + UI running at http://localhost:3000');
-});
+// support both GET and POST for “next”
+app.get('/api/next',  assignNextChain);
+app.post('/api/next', assignNextChain);
 
+// start server
+app.listen(PORT, () => {
+  console.log(`Bot + UI running at http://localhost:${PORT}`);
+});
