@@ -1,7 +1,9 @@
 // server.js
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
+const path    = require('path');
+const fs      = require('fs');
+const http    = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
 const PORT = 3000;
@@ -18,12 +20,30 @@ function loadAssignments() {
 function saveAssignments(data) {
   fs.writeFileSync(ASSIGN_FILE, JSON.stringify(data, null, 2));
 }
+
+// find lowest positive integer not yet taken
+function getNextChainNumber() {
+  const assignments = loadAssignments();
+  let next = 1;
+  while (Object.values(assignments).includes(next)) {
+    next++;
+  }
+  return next;
+}
+
+// assign and persist a new chain number under "public"
+function storeNextChain() {
+  const assignments = loadAssignments();
+  const next = getNextChainNumber();
+  assignments['public'] = next;
+  saveAssignments(assignments);
+  return next;
+}
 // ————————————————————————————————
 
 // serve static frontend from /public
 app.use(express.static(path.join(__dirname, 'public')));
-// enable JSON bodies (if you ever POST JSON)
-app.use(express.json());
+app.use(express.json()); // parse JSON bodies
 
 // — health check
 app.get('/api/status', (req, res) => {
@@ -36,25 +56,36 @@ app.get('/api/stats', (req, res) => {
   res.json({ queueLength: Object.keys(assignments).length });
 });
 
-// — assign “next” chain (shared logic)
-function assignNextChain(req, res) {
-  const assignments = loadAssignments();
-  // find lowest positive integer not yet taken
-  let next = 1;
-  while (Object.values(assignments).includes(next)) {
-    next++;
-  }
-  // store it under the key "public"
-  assignments['public'] = next;
-  saveAssignments(assignments);
-  res.json({ assignedNumber: next });
-}
+// — assign “next” chain via HTTP GET or POST
+app.get('/api/next',  (req, res) => {
+  const num = storeNextChain();
+  res.json({ assignedNumber: num });
+});
+app.post('/api/next', (req, res) => {
+  const num = storeNextChain();
+  res.json({ assignedNumber: num });
+});
 
-// support both GET and POST for “next”
-app.get('/api/next',  assignNextChain);
-app.post('/api/next', assignNextChain);
+// — set up real-time via Socket.IO
+const server = http.createServer(app);
+const io = new Server(server);
 
-// start server
-app.listen(PORT, () => {
-  console.log(`Bot + UI running at http://localhost:${PORT}`);
+io.on('connection', socket => {
+  console.log('📡 Client connected');
+
+  // client asks for next chain
+  socket.on('getNext', () => {
+    const num = storeNextChain();
+    // broadcast to everyone
+    io.emit('newChain', num);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('❌ Client disconnected');
+  });
+});
+
+// start HTTP + WebSocket server
+server.listen(PORT, () => {
+  console.log(`Bot + UI + real-time running at http://localhost:${PORT}`);
 });
