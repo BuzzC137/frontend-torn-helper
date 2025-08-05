@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Torn Panel – Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <script>
+    // Redirect to login if not authenticated
+    if (sessionStorage.loggedIn !== "yes") {
+      location.href = "index.html";
+    }
+  </script>
+
+  <nav>
+    <a href="ui.html">Dashboard</a>
+    <a href="settings.html">Settings</a>
+    <a href="#" onclick="sessionStorage.clear();location.href='index.html'">Log out</a>
+  </nav>
+
+  <div id="app">
+    <h1>Chain Bot Dashboard</h1>
+    <div id="status">Loading...</div>
+    <div id="chain-stats"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
