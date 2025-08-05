@@ -1,7 +1,0 @@
-tunnel: tornpanel
-credentials-file: C:\Users\TFO\.cloudflared\74139609-c053-4082-a0a2-3ead122c3b96.json
-
-ingress:
-  - hostname: tornpanel.online
-    service: http://localhost:3000
-  - service: http_status:404
