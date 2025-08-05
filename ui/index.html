@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Torn Panel – Login</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* full-screen white canvas */
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #fff;
+      position: relative;
+      font-family: sans-serif;
+    }
+    #catCanvas {
+      display: block;
+      background: #fff;
+    }
+    /* server status badge */
+    #status {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 0.3rem 0.6rem;
+      border: 1px solid #000;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.8);
+      font-size: 0.9rem;
+    }
+    /* centered login box */
+    #login {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.85);
+      padding: 1.5rem;
+      border: 2px solid #000;
+      border-radius: 8px;
+      text-align: center;
+      z-index: 1;
+    }
+    #login h1 {
+      margin: 0 0 1rem;
+      font-size: 1.25rem;
+    }
+    #login input, #login button {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #login button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- health check -->
+  <div id="status">Checking server…</div>
+
+  <!-- cat animation -->
+  <canvas id="catCanvas" width="800" height="200"></canvas>
+
+  <!-- login form -->
+  <form id="login">
+    <h1>Log in to Torn Panel</h1>
+    <input name="pass" type="password" placeholder="Password" required>
+    <br>
+    <button type="submit">Log In</button>
+  </form>
+
+  <script>
+    // ————————————————————————————
+    // 1) CAT ANIMATION (pixel art, no images)
+    // ————————————————————————————
+    const canvas = document.getElementById('catCanvas');
+    const ctx    = canvas.getContext('2d');
+    const SCALE  = 10;
+    let   xPos   = -60;
+
+    // 6×7 pixel-art cat (1 = filled pixel)
+    const CAT = [
+      [0,0,1,1,0,0],
+      [0,1,0,0,1,0],
+      [1,0,1,1,0,1],
+      [1,1,1,1,1,1],
+      [1,0,1,1,0,1],
+      [1,0,0,0,0,1],
+      [0,1,1,1,1,0]
+    ];
+
+    function drawCat(x) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#000';
+      CAT.forEach((row, y) =>
+        row.forEach((p, i) => {
+          if (p) ctx.fillRect(x + i*SCALE, 50 + y*SCALE, SCALE, SCALE);
+        })
+      );
+    }
+
+    function animate() {
+      xPos += 2;
+      if (xPos > canvas.width) xPos = -CAT[0].length * SCALE;
+      drawCat(xPos);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // ————————————————————————————
+    // 2) HEALTH-CHECK AGAINST /api/status
+    // ————————————————————————————
+    const statusEl = document.getElementById('status');
+    fetch('/api/status')
+      .then(r => r.json())
+      .then(j => {
+        statusEl.textContent = 'Server: ' + (j.message || 'OK');
+      })
+      .catch(_ => {
+        statusEl.textContent = 'Server: offline';
+      });
+
+    // ————————————————————————————
+    // 3) LOGIN + AUTOMATIC “NEXT CHAIN” ASSIGN
+    // ————————————————————————————
+    const creds = { pass: "2580" };
+    const form  = document.getElementById("login");
+    form.onsubmit = async e => {
+      e.preventDefault();
+      if (e.target.pass.value !== creds.pass) {
+        alert("Invalid password");
+        return;
+      }
+
+      try {
+        // GET the next chain number
+        const res = await fetch('/api/next');
+        const { assignedNumber } = await res.json();
+
+        // store for your ui.html to pick up
+        sessionStorage.chain = assignedNumber;
+        sessionStorage.loggedIn = "yes";
+
+        // go to the dashboard
+        location.href = "ui.html";
+      } catch (err) {
+        alert("Could not assign chain—server offline?");
+        console.error(err);
+      }
+    };
+  </script>
+</body>
+</html>

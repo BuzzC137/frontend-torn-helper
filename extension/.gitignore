@@ -1,0 +1,19 @@
+﻿# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Ignore any local secrets if added
+*.env
+
+# Node modules (if ever used)
+node_modules/
+
+# VSCode workspace/settings
+.vscode/
+
+# OneDrive temp files
+~$*
+

@@ -1,0 +1,17 @@
+{
+  "name": "torn-city-war-bot",
+  "version": "1.0.0",
+  "description": "Bot to assign chain numbers via Discord",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  }
+}

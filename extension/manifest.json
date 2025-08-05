@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Torn Chain Panel",
+  "short_name": "Chain Panel",
+  "version": "1.0.1",
+  "description": "Manage and fetch Torn chain numbers with alerts, admin queue control, and YATA faction integration.",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": [
+    "https://www.torn.com/*",
+    "https://checkout-forty-assured-groove.trycloudflare.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.torn.com/*"],
+      "js": [
+        "storage.js",
+        "helpers.js",
+        "queue.js",
+        "ui.js",
+        "main.js",
+        "content-bridge.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Torn Chain Panel",
+    "default_icon": {
+      "48": "icon.png",
+      "128": "icon_128.png"
+    }
+  },
+  "icons": {
+    "48": "icon.png",
+    "128": "icon_128.png"
+  },
+  "homepage_url": "https://github.com/buzzc137/torn-chain-panel"
+}
