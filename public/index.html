@@ -5,23 +5,104 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Torn Panel – Login</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* center the form over the canvas */
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #fff;
+      position: relative;
+      font-family: sans-serif;
+    }
+    #catCanvas {
+      display: block;
+      background: #fff;
+    }
+    #login {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.8);
+      padding: 1.5rem;
+      border: 2px solid #000;
+      border-radius: 8px;
+      text-align: center;
+    }
+    #login h1 {
+      margin: 0 0 1rem;
+      font-size: 1.25rem;
+    }
+    #login input, #login button {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    #login button {
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
+
+  <!-- 1) The cat runner canvas -->
+  <canvas id="catCanvas" width="800" height="200"></canvas>
+
+  <!-- 2) Your one-field password login -->
   <form id="login">
     <h1>Log in to Torn Panel</h1>
-    <!-- ONLY the password field below — no username input at all -->
     <input name="pass" type="password" placeholder="Password" required>
+    <br>
     <button type="submit">Log In</button>
   </form>
 
   <script>
-    // Only a password now
-    const creds = { pass: "2580" };
+    // —————————————————————————————————————————————
+    // CAT ANIMATION (no images)
+    // —————————————————————————————————————————————
+    const canvas = document.getElementById('catCanvas');
+    const ctx    = canvas.getContext('2d');
+    const SCALE  = 10;
+    let   xPos   = -60;
 
-    document.getElementById("login").onsubmit = e => {
+    // 6×7 pixel-art cat
+    const CAT = [
+      [0,0,1,1,0,0],
+      [0,1,0,0,1,0],
+      [1,0,1,1,0,1],
+      [1,1,1,1,1,1],
+      [1,0,1,1,0,1],
+      [1,0,0,0,0,1],
+      [0,1,1,1,1,0],
+    ];
+
+    function drawCat(x) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#000';
+      CAT.forEach((row, y) =>
+        row.forEach((p, i) => {
+          if (p) ctx.fillRect(x + i*SCALE, 50 + y*SCALE, SCALE, SCALE);
+        })
+      );
+    }
+
+    function animate() {
+      xPos += 2;
+      if (xPos > canvas.width) xPos = -CAT[0].length*SCALE;
+      drawCat(xPos);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // —————————————————————————————————————————————
+    // SIMPLE PASSWORD LOGIN
+    // —————————————————————————————————————————————
+    const creds = { pass: "2580" };
+    const form  = document.getElementById("login");
+
+    form.onsubmit = e => {
       e.preventDefault();
-      const p = e.target.pass.value;
-      if (p === creds.pass) {
+      if (e.target.pass.value === creds.pass) {
         sessionStorage.loggedIn = "yes";
         location.href = "ui.html";
       } else {
@@ -31,3 +112,4 @@
   </script>
 </body>
 </html>
+
